@@ -6,9 +6,6 @@ TO-DO: Get information about the data
 
 import os, sys, argparse
 
-if __name__ == "__main__":
-    main()
-
 def main():
     # parse the arguments
     conll_input, output_path = parse_arguments()
@@ -51,3 +48,6 @@ def convert(conll_file, tsv_file):
 def get_info(tsv_file, info_file):
     # TODO: Step 1.3 - Get information about the data and write to .info
     return None
+
+if __name__ == "__main__":
+    main()
