@@ -11,16 +11,16 @@ TODO: environment
 
 ## Data Preprocessing
 
-For the preprocessing step, first concatenate the dia into a single .conll file, if needed. For example, if the files are with the suffix `.gold_conll` and at `data/sample`, run
+For the preprocessing step, first concatenate the data into a single .conll file, if needed. For example, if there are several files all with the suffix `.gold_conll` and at `data/sample`, run
 ```
 $ cat data/sample/*.gold_conll > data/sample.conll
 ```
 
-Then use data_prep.py to preprocess the data, it takes two arguments, a single input file and the output directory. For example, run
+Then use `data_prep.py` to preprocess the data, which takes two arguments, a single input file and an output directory. For example, run
 ```
 $ python data_prep.py data/sample.conll output
 ```
-The script will output two files into the output directory, `sample.tsv` containing only word position, word, POS tag, and `sample.info` containing some basic info on the data.
+The script will output two files in the output directory, namely a `sample.tsv` containing only relevant information (word position, word, and POS tag) and a `sample.info` containing some basic info on the data.
 
 ## Authors
 In alphabetical order:
