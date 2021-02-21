@@ -25,5 +25,5 @@ The script will output two files in the output directory, namely a `sample.tsv` 
 ## Authors
 In alphabetical order:
 * **Meng Li** - [limengnlp](https://github.com/limengnlp)
-* **Peilu Lin** - []()
+* **Peilu Lin** - [palla-lin](https://github.com/palla-lin)
 * **Siyu Tao** - [siyutao](https://github.com/siyutao)
