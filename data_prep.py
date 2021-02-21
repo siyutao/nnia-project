@@ -46,7 +46,44 @@ def convert(conll_file, tsv_file):
                 o.write("\n")
 
 def get_info(tsv_file, info_file):
-    # TODO: Step 1.3 - Get information about the data and write to .info
+    # Get information about the data and write to .info
+    length=[]
+    tag_count={}
+    preline=''
+    for line in open(tsv_file):
+        line=line.strip('\n').split('\t')
+        if line[0]=='*':
+            l=int(preline[0])+1
+            length.append(l)
+        else:
+            tag=line[2]
+            if tag not in tag_count:
+                tag_count[tag]=1
+            else:
+                tag_count[tag]+=1
+        preline= line
+    # Maximum sequence length;
+    seq_max=max(length)
+    # Minimum sequence length;
+    seq_min=min(length)
+    # Number of sequences;
+    seq_num= len(length)
+    # Mean sequence length;
+    seq_mean=sum(length)/seq_num
+    # List of tags and the percentage of the words that have these tags.
+    tag_sum=sum(tag_count.values())
+    for k,v in tag_count.items():
+        tag_count[k]='{:.3%}'.format(v/tag_sum )
+    
+    # Output to .info
+    with open(info_file,'w') as f:
+        f.write(f'Maximum sequence length: {seq_max}\n')
+        f.write(f'Minimum sequence length: {seq_min}\n')
+        f.write(f'Mean sequence length: {seq_mean}\n')
+        f.write(f'Number of sequences: {seq_num}\n\n')
+        f.write(f'Tags:\n')
+        for k,v in tag_count.items():
+            f.write(f'{k:5}    {v}\n')
     return None
 
 if __name__ == "__main__":
