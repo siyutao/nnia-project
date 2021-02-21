@@ -7,7 +7,15 @@ Final Project, NNIA (Wintersemester 2020/21), Saarland University
 * [Authors](#authors)
 
 ## General Information
-TODO: environment
+### Environment Setup
+Create the environment from the environment.yml file:
+```
+$ conda env create -f environment.yml
+```
+Activate the project environment:
+```
+$ conda activate meng_peilu_siyu
+```
 
 ## Data Preprocessing
 
