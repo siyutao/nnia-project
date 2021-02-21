@@ -1,7 +1,6 @@
 """
-Data Preprocessing
-Preprocessing conll file into tsv
-TO-DO: Get information about the data
+Data Preprocessing:
+Preprocessing conll file into tsv and get information about the data
 """
 
 import os, sys, argparse
