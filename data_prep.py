@@ -5,19 +5,6 @@ Preprocessing conll file into tsv and get information about the data
 
 import os, sys, argparse
 
-def main():
-    # parse the arguments
-    conll_input, output_path = parse_arguments()
-    # create output directory if it doesn't exist
-    os.makedirs(output_path, exist_ok=True)
-    # output files (.tsv and .info)
-    tsv_ouput = os.path.join(output_path, "sample.tsv")
-    info_output = os.path.join(output_path, "sample.info")
-    # convert .conll to .tsv, i.e. extract POS tags
-    convert(conll_input, tsv_ouput)
-    # get information about data and write to .info
-    get_info(tsv_ouput, info_output)
-
 def parse_arguments():
     # parse command line args with argparse
     parser = argparse.ArgumentParser(description='Data Preprocessing')
@@ -84,6 +71,19 @@ def get_info(tsv_file, info_file):
         for k,v in tag_count.items():
             f.write(f'{k:5}    {v}\n')
     return None
+
+def main():
+    # parse the arguments
+    conll_input, output_path = parse_arguments()
+    # create output directory if it doesn't exist
+    os.makedirs(output_path, exist_ok=True)
+    # output files (.tsv and .info)
+    tsv_ouput = os.path.join(output_path, "sample.tsv")
+    info_output = os.path.join(output_path, "sample.info")
+    # convert .conll to .tsv, i.e. extract POS tags
+    convert(conll_input, tsv_ouput)
+    # get information about data and write to .info
+    get_info(tsv_ouput, info_output)
 
 if __name__ == "__main__":
     main()
