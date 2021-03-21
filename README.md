@@ -19,16 +19,16 @@ $ conda activate meng_peilu_siyu
 
 ## Data Preprocessing
 
-For the preprocessing step, first concatenate the data into a single .conll file, if needed. For example, if there are several files all with the suffix `.gold_conll` and at `data/sample`, run
+For the preprocessing step, first concatenate the data into a single .conll file, if needed. For example, if there are several files all with the suffix `.gold_conll` and at `data/ontonotes-4.0`, run
 ```
-$ cat data/sample/*.gold_conll > data/sample.conll
+$ cat data/ontonotes-4.0/*.gold_conll > data/ontonotes.conll
 ```
 
 Then use `data_prep.py` to preprocess the data, which takes two arguments, a single input file and an output directory. For example, run
 ```
-$ python data_prep.py data/sample.conll output
+$ python data_prep.py -i data/ontonotes.conll -o data
 ```
-The script will output two files in the output directory, namely a `sample.tsv` containing only relevant information (word position, word, and POS tag) and a `sample.info` containing some basic info on the data.
+The script will output two files in the output directory, namely a `data.tsv` containing only relevant information (word position, word, and POS tag) and a `data.info` containing some basic info on the data.
 
 ## Authors
 In alphabetical order:

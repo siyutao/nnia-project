@@ -8,10 +8,12 @@ import os, sys, argparse
 def parse_arguments():
     # parse command line args with argparse
     parser = argparse.ArgumentParser(description='Data Preprocessing')
-    parser.add_argument('input', metavar ='input_file', type=str, help='path to the input .conll file')
-    parser.add_argument('path', metavar='output_path' ,type=str, help='path of the output directory')
+    parser.add_argument('-i', metavar='input_file', type=str,
+                        help='path to the input .conll file',default='./data/ontonotes.conll')
+    parser.add_argument('-o', metavar='output_path', type=str,
+                        help='path of the output directory',default='./data/')
     args = parser.parse_args()
-    return args.input, args.path
+    return args.i, args.o
 
 def convert(conll_file, tsv_file):
     # convert standard conll file into three column tsv file that contains only
@@ -78,8 +80,8 @@ def main():
     # create output directory if it doesn't exist
     os.makedirs(output_path, exist_ok=True)
     # output files (.tsv and .info)
-    tsv_ouput = os.path.join(output_path, "sample.tsv")
-    info_output = os.path.join(output_path, "sample.info")
+    tsv_ouput = os.path.join(output_path, "data.tsv")
+    info_output = os.path.join(output_path, "data.info")
     # convert .conll to .tsv, i.e. extract POS tags
     convert(conll_input, tsv_ouput)
     # get information about data and write to .info
