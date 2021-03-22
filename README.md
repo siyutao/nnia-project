@@ -30,6 +30,12 @@ $ python data_prep.py -i data/ontonotes.conll -o data
 ```
 The script will output two files in the output directory, namely a `data.tsv` containing only relevant information (word position, word, and POS tag) and a `data.info` containing some basic info on the data.
 
+Run
+```
+$ python data_prep.py -i data/ontonotes.conll -o data/ontonotes_splits/ --split
+```
+to split the data into train, dev, test sets.
+
 ## Authors
 In alphabetical order:
 * **Meng Li** - [limengnlp](https://github.com/limengnlp)
