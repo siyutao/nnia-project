@@ -4,6 +4,7 @@ Final Project, NNIA (Wintersemester 2020/21), Saarland University
 ## Table of contents
 * [General Information](#general-information)
 * [Data Preprocessing](#data-preprocessing)
+* [Model Training and Evaluation](#model-training-and-evaluation)
 * [Authors](#authors)
 
 ## General Information
@@ -30,7 +31,7 @@ $ python data_prep.py -i data/ontonotes.conll -o data
 ```
 The script will output two files in the output directory, namely a `data.tsv` containing only relevant information (word position, word, and POS tag) and a `data.info` containing some basic info on the data.
 
-## Train-Eval-Test Split
+### Train-Eval-Test Split
 
 To use our script for training, we need to also split the data. Run
 ```
