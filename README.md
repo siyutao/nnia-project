@@ -36,6 +36,17 @@ $ python data_prep.py -i data/ontonotes.conll -o data/ontonotes_splits/ --split
 ```
 to split the data into train, dev, test sets.
 
+## Train models
+To train bert_linear model
+```
+python notebook_bert_linear.py -epochs 2 --batch_size 32 --lr 0.001 --dropout 0.25
+```
+To train bert+lstm model
+
+```
+python notebook_bert_lstm.py --epochs 2 --batch_size 32 --hdim 128 --layers 1 --bi True --dropout 0.25 --lr 0.001
+```
+
 ## Authors
 In alphabetical order:
 * **Meng Li** - [limengnlp](https://github.com/limengnlp)
