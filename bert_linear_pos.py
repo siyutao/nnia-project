@@ -3,18 +3,18 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import time, random, functools
-from torchtext import data
-from torchtext import datasets
-# from torchtext.legacy import data
-# from torchtext.legacy import datasets
+from torchtext.legacy import data
+from torchtext.legacy import datasets
 import numpy as np
 from collections import defaultdict, Counter
 import matplotlib.pyplot as plt
 from transformers import AutoTokenizer, AutoModel
 from transformers import BertModel, BertTokenizer
 import argparse
+
 # check cuda / cpu
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
 print('DEVICE:', device)
 # fix random seed for reproducability
 SEED = 6456
@@ -29,18 +29,16 @@ tokenizer = BertTokenizer.from_pretrained('bert-base-cased')
 init_token = tokenizer.cls_token
 pad_token = tokenizer.pad_token
 unk_token = tokenizer.unk_token
+
 # print(init_token, pad_token, unk_token)
+
 init_token_idx = tokenizer.convert_tokens_to_ids(init_token)
 pad_token_idx = tokenizer.convert_tokens_to_ids(pad_token)
 unk_token_idx = tokenizer.convert_tokens_to_ids(unk_token)
 
 # print(init_token_idx, pad_token_idx, unk_token_idx)
 
-
 max_input_length = tokenizer.max_model_input_sizes['bert-base-cased']
-
-
-# print(max_input_length)
 
 
 def cut_and_convert_to_id(tokens, tokenizer, max_input_length):
@@ -81,58 +79,24 @@ def read_data(corpus_file, datafields):
         return data.Dataset(examples, datafields)
 
 
-class BertBiLSTMPOSTagger(nn.Module):
-    def __init__(self,
-                 bert,
-                 hidden_dim,
-                 output_dim,
-                 n_layers,
-                 bidirectional,
-                 dropout):
+class BERTPoSTagger(nn.Module):
+    def __init__(self, bert, output_dim, dropout):
         super().__init__()
-
         self.bert = bert
         embedding_dim = bert.config.to_dict()['hidden_size']
-
-        self.lstm = nn.LSTM(embedding_dim,
-                            hidden_dim,
-                            num_layers=n_layers,
-                            bidirectional=bidirectional,
-                            dropout=dropout if n_layers > 1 else 0)
-
-        self.fc = nn.Linear(hidden_dim * 2 if bidirectional else hidden_dim, output_dim)
-        #         self.fc = nn.Linear(embedding_dim, output_dim)
+        self.fc = nn.Linear(embedding_dim, output_dim)
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, text):
         # text = [sent len, batch size]
-
         text = text.permute(1, 0)
-
         # text = [batch size, sent len]
-
         embedded = self.dropout(self.bert(text)[0])
-
         # embedded = [batch size, seq len, emb dim]
-
         embedded = embedded.permute(1, 0, 2)
-
         # embedded = [sent len, batch size, emb dim]
-
-        # pass embeddings into LSTM
-        outputs, (hidden, cell) = self.lstm(embedded)
-
-        # outputs holds the backward and forward hidden states in the final layer
-        # hidden and cell are the backward and forward hidden and cell states at the final time-step
-
-        # output = [sent len, batch size, hid dim * n directions]
-        # hidden/cell = [n layers * n directions, batch size, hid dim]
-
-        # we use our outputs to make a prediction of what the tag should be
-        predictions = self.fc(self.dropout(outputs))
-
+        predictions = self.fc(self.dropout(embedded))
         # predictions = [sent len, batch size, output dim]
-
         return predictions
 
 
@@ -141,6 +105,9 @@ def count_parameters(model):
 
 
 def categorical_accuracy(preds, y, tag_pad_idx):
+    """
+    Returns accuracy per batch, i.e. if you get 8/10 right, this returns 0.8, NOT 8
+    """
     max_preds = preds.argmax(dim=1, keepdim=True)  # get the index of the max probability
     non_pad_elements = (y != tag_pad_idx).nonzero()
     correct = max_preds[non_pad_elements].squeeze(1).eq(y[non_pad_elements])
@@ -186,16 +153,11 @@ def evaluate(model, iterator, criterion, tag_pad_idx):
         for batch in iterator:
             text = batch.text
             tags = batch.label
-
             predictions = model(text)
-
             predictions = predictions.view(-1, predictions.shape[-1])
             tags = tags.view(-1)
-
             loss = criterion(predictions, tags)
-
             acc = categorical_accuracy(predictions, tags, tag_pad_idx)
-
             epoch_loss += loss.item()
             epoch_acc += acc.item()
 
@@ -211,6 +173,7 @@ def epoch_time(start_time, end_time):
 
 def tag_sentence(model, device, sentence, tokenizer, text_field, tag_field):
     model.eval()
+
     if isinstance(sentence, str):
         tokens = tokenizer.tokenize(sentence)
     else:
@@ -220,18 +183,27 @@ def tag_sentence(model, device, sentence, tokenizer, text_field, tag_field):
     numericalized_tokens = [text_field.init_token] + numericalized_tokens
 
     unk_idx = text_field.unk_token
+
     unks = [t for t, n in zip(tokens, numericalized_tokens) if n == unk_idx]
+
     token_tensor = torch.LongTensor(numericalized_tokens)
+
     token_tensor = token_tensor.unsqueeze(-1).to(device)
+
     predictions = model(token_tensor)
+
     top_predictions = predictions.argmax(-1)
+
     predicted_tags = [tag_field.vocab.itos[t.item()] for t in top_predictions]
+
     predicted_tags = predicted_tags[1:]
+
     assert len(tokens) == len(predicted_tags)
+
     return tokens, predicted_tags, unks
 
 
-def decode(model, device, sentence, tokenizer, text_field, tag_field):
+def decode(model, device, tokenizer, text_field, tag_field):
     from sklearn import metrics
     gold, system = [], []
     model.eval()
@@ -259,40 +231,25 @@ def decode(model, device, sentence, tokenizer, text_field, tag_field):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='')
 
-    parser.add_argument('--epochs', type=int, default=2, help='iteration')
-    parser.add_argument('--batch_size', type=int, default=32, help='iteration')
-    parser.add_argument('--lr', type=int, default=5e-5, help='learning rate')
-    parser.add_argument('--dropout', type=float, default=0.25, help='learning rate')
-    parser.add_argument('--layers', type=int, default=2, help='layers number')
-    parser.add_argument('--hdim', type=int, default=128, help='hidden dimension')
-    parser.add_argument('--bi', type=bool, default=True, help='bidirectional RNN')
+    parser.add_argument('--epochs', type=int, default=2, help='num of epochs')
+    parser.add_argument('--batch_size', type=int, default=32, help='batch size')
+    parser.add_argument('--lr', type=float, default=5e-5, help='learning rate')
+    parser.add_argument('--dropout', type=float, default=0.25, help='dropout rate')
     args = parser.parse_args()
 
-    N_EPOCHS = args.epochs
     BATCH_SIZE = args.batch_size
-    HIDDEN_DIM = args.hdim
-    N_LAYERS = args.layers
-    BIDIRECTIONAL = args.bi
-    DROPOUT = args.dropout
     LEARNING_RATE = args.lr
+    N_EPOCHS = args.epochs
+    DROPOUT = args.dropout
 
+    TEXT = data.Field(use_vocab=False, lower=False, preprocessing=text_preprocessor,
+                      init_token=init_token_idx, pad_token=pad_token_idx, unk_token=unk_token_idx)
 
-    # process data
-    TEXT = data.Field(use_vocab=False,
-                      lower=False,
-                      preprocessing=text_preprocessor,
-                      init_token=init_token_idx,
-                      pad_token=pad_token_idx,
-                      unk_token=unk_token_idx)
+    LABEL = data.Field(unk_token=None, init_token='<pad>', preprocessing=tag_preprocessor)
 
-    LABEL = data.Field(unk_token=None,
-                       init_token='<pad>',
-                       preprocessing=tag_preprocessor)
-
-
+    # corresponding fields in the data
     fields = [('text', TEXT), ('label', LABEL)]
-
-
+    # load data from the tsv files (already split)
     train_data = read_data('data/ontonotes_splits/train.tsv', fields)
     valid_data = read_data('data/ontonotes_splits/dev.tsv', fields)
     test_data = read_data('data/ontonotes_splits/test.tsv', fields)
@@ -301,29 +258,24 @@ if __name__ == '__main__':
     print(f"Size of testing set   : {len(test_data)}")
 
     LABEL.build_vocab(train_data)
+
     train_iterator, valid_iterator, test_iterator = data.BucketIterator.splits(
-        (train_data, valid_data, test_data), sort=False,batch_size=BATCH_SIZE,device=device)
+        (train_data, valid_data, test_data), sort=False, batch_size=BATCH_SIZE, device=device)
 
-
-    # train
     bert = BertModel.from_pretrained('bert-base-cased')
-
     OUTPUT_DIM = len(LABEL.vocab)
-    model = BertBiLSTMPOSTagger(bert,HIDDEN_DIM,OUTPUT_DIM,N_LAYERS,BIDIRECTIONAL,DROPOUT)
-
+    model = BERTPoSTagger(bert, OUTPUT_DIM, DROPOUT)
     print(f'The model has {count_parameters(model):,} trainable parameters')
 
+    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
     TAG_PAD_IDX = LABEL.vocab.stoi[LABEL.pad_token]
     criterion = nn.CrossEntropyLoss(ignore_index=TAG_PAD_IDX)
-    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE, betas=(0.9, 0.98), eps=1e-9)
-
     model = model.to(device)
     criterion = criterion.to(device)
 
-
-
     best_valid_loss = float('inf')
     for epoch in range(N_EPOCHS):
+
         start_time = time.time()
 
         train_loss, train_acc = train(model, train_iterator, optimizer, criterion, TAG_PAD_IDX)
@@ -334,14 +286,14 @@ if __name__ == '__main__':
 
         if valid_loss < best_valid_loss:
             best_valid_loss = valid_loss
-            torch.save(model.state_dict(), 'bert-lstm-model.pt')
+            torch.save(model.state_dict(), 'linear-model.pt')
 
         print(f'Epoch: {epoch + 1:02} | Epoch Time: {epoch_mins}m {epoch_secs}s')
         print(f'\tTrain Loss: {train_loss:.3f} | Train Acc: {train_acc * 100:.2f}%')
         print(f'\t Val. Loss: {valid_loss:.3f} |  Val. Acc: {valid_acc * 100:.2f}%')
 
     # evaluate
-    model.load_state_dict(torch.load('bert-lstm-model.pt'))
+    model.load_state_dict(torch.load('linear-model.pt'))
     test_loss, test_acc = evaluate(model, test_iterator, criterion, TAG_PAD_IDX)
     print(f'Test Loss: {test_loss:.3f} | Test Acc: {test_acc * 100:.2f}%')
 
@@ -352,5 +304,5 @@ if __name__ == '__main__':
     for token, tag in zip(tokens, tags):
         print(f"{tag}\t\t{token}")
 
-    # print report
+    # decode
     decode(model, device, tokenizer, TEXT, LABEL)
