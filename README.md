@@ -47,12 +47,12 @@ python bert_linear_pos.py -epochs 10 --batch_size 32 --lr 5e-5 --dropout 0.25
 
 To train a BERT + BiLSTM (single-layer) model, run
 ```
-python bert_lstm_pos.py --epochs 10 --batch_size 32 --hdim 128 --layers 1 --bi True --dropout 0.25 --lr 0.001
+python bert_lstm_pos.py --epochs 10 --batch_size 32 --hdim 128 --layers 1 --bi True --dropout 0.25 --lr 5e-5
 ```
 
 To train a BERT + BiLSTM (two-layer) model, run
 ```
-python bert_lstm_pos.py --epochs 10 --batch_size 32 --hdim 128 --layers 2 --bi True --dropout 0.25 --lr 0.001
+python bert_lstm_pos.py --epochs 10 --batch_size 32 --hdim 128 --layers 2 --bi True --dropout 0.25 --lr 5e-5
 ```
 
 ## Authors
