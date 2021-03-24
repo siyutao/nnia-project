@@ -37,23 +37,23 @@ To use our script for training, we need to also split the data. Run
 ```
 $ python data_prep.py -i data/ontonotes.conll -o data/ontonotes_splits/ --split
 ```
-to split the data into train, dev, test sets. Note that the relative path to output folder should not be altered, since at the moment the datapath to train, dev and test sets are hard-coded in our training and eval scripts. 
+to split the data into train, dev, test sets. Note that the relative path to output folder should not be altered, since at the moment the relative path to train, dev and test sets are still hard-coded in our training and eval scripts. 
 
 ## Model Training and Evaluation
 
 To train and evaluate a BERT + Linear model, run
 ```
-python bert_linear_pos.py -epochs 10 --batch_size 32 --lr 5e-5 --dropout 0.25
+$ python bert_linear_pos.py -epochs 10 --batch_size 32 --lr 5e-5 --dropout 0.25
 ```
 
 To train a BERT + BiLSTM (single-layer) model, run
 ```
-python bert_lstm_pos.py --epochs 10 --batch_size 32 --hdim 128 --layers 1 --bi True --dropout 0.25 --lr 5e-5
+$ python bert_lstm_pos.py --epochs 10 --batch_size 32 --hdim 128 --layers 1 --bi True --dropout 0.25 --lr 5e-5
 ```
 
 To train a BERT + BiLSTM (two-layer) model, run
 ```
-python bert_lstm_pos.py --epochs 10 --batch_size 32 --hdim 128 --layers 2 --bi True --dropout 0.25 --lr 5e-5
+$ python bert_lstm_pos.py --epochs 10 --batch_size 32 --hdim 128 --layers 2 --bi True --dropout 0.25 --lr 5e-5
 ```
 
 ## Authors
